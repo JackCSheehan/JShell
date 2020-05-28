@@ -1,2 +1,2 @@
-# hacker-shell
-A simple Linux shell that provides some extra basic utilities to programmers.
+# JShell
+A simple Linux shell written in x86 assembly (NASM syntax).
