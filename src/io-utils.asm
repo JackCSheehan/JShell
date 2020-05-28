@@ -127,7 +127,7 @@ getln:
 	pop	edx
 	ret
 
-; This function takes an input buffer in EAX and clears it. ECX, EAX, and EDI are used and preserved.
+; This function takes an input buffer in EAX and clears it. EBX and ECX are used but preserved.
 ; NOTE: Assumes buffer size is 100.
 clrBuff:
 	; Preserve values of registers
