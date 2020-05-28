@@ -2,38 +2,44 @@
 
 %include "io-utils.asm"	; Useful functions for IO
 
-section .data
-tstIns:	db	"test", 0x00		; Test instruction
-msg1:	db	"Strings match!", 0x00	; Message if strings match
+SECTION .data
+initMsg:	db	"Welcome to JShell. Copyright (c) 2020 Jack Sheehan.", 0x00	; Greeting message for user
+prompt:		db	"> ", 0x00							; Prompt to type commands
 
-section .text
+; Commands
+quitComm:	db	"quit", 0x0A, 0x00						; Command to quit
+
+SECTION .bss
+input:		resb	100		; Reserve 100 bytes for input
+
+SECTION .text
 global _start
 
 _start:
-	pop	ecx		; Get number of arguments
-	pop	eax		; Discard first argument
-	pop	eax		; Get second argument 
-	
-	mov	ebx, tstIns	; Put test instruction into EBX
-	call	cmpStr		; Compare the strings in EAX and EBX
-	
-	cmp	ecx, 0		; Compare result of cmpStr function with 0
-	jz	equalStrs	; If the strings are equal, print that they match
-	jnz	quit
-
-equalStrs:
-	mov	eax, msg1	; Move message into EAX for printing
+	; Display greetting message
+	mov	eax, initMsg
 	call	println
 
-;loop:
-;	cmp	ecx, 0		; Loop while ecx > 0
-;	jz	exit
-;	pop	eax		; Pop next argument into EAX
-;	call 	println		; Print the string
-;	dec	ecx		; Decrment argument counter
-;	jmp	loop
+inLoop:				; Input Loop
+	; Display prompt
+	mov	eax, prompt
+	call	print	
+	
+	; Get input
+	mov	eax, input	; Move buffer into EAX and get the input
+	call	getln
 
-quit:				; Exit routiness
+	; Check input
+	mov	ebx, quitComm	; Move quit command into EBX
+	call	cmpStr		; Compare input to quit command
+	cmp	ecx, 0		; Compare ECX to 0
+	jz	quit		; If the user entered the quit command, quit program
+
+	call	clrBuff		; Clear the input buffer
+
+	jmp	inLoop
+
+quit:				; Exit routines
 	mov	ebx, 0		; Return 0 errors
 	mov	eax, 1		; OPCODE for sys_exit
 	int	0x80
