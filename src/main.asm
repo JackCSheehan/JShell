@@ -7,10 +7,13 @@ initMsg:	db	"Welcome to JShell. Copyright (c) 2020 Jack Sheehan.", 0x00	; Greeti
 prompt:		db	"> ", 0x00							; Prompt to type commands
 
 ; Commands
-quitComm:	db	"quit", 0x0A, 0x00						; Command to quit
+quitComm:	db	"quit", 0x00							; Command to quit
+mkfComm:	db	"mkf", 0x00							; Command to create a new file
 
 SECTION .bss
 input:		resb	100		; Reserve 100 bytes for input
+comm:		resb	33		; Reserve 33 bytes for the command
+arg1:		resb	33		; Reserve 33 bytes for the first argument
 
 SECTION .text
 global _start
@@ -30,12 +33,25 @@ inLoop:				; Input Loop
 	call	getln
 
 	; Check input
-	mov	ebx, quitComm	; Move quit command into EBX
-	call	cmpStr		; Compare input to quit command
-	cmp	ecx, 0		; Compare ECX to 0
-	jz	quit		; If the user entered the quit command, quit program
+	mov	ebx, comm	; Move command buffer into EBX
+	call	getComm		; Call getComm to get the command from the input
 
-	call	clrBuff		; Clear the input buffer
+	push	eax		; Push EAX onto the stack to reserve its value while the input is compared to commands
+
+	mov	eax, ebx	; Move comm into EAX to print it
+	call	println		; Print command
+
+	; Check for quit command
+	
+	;call	cmpStr		; Compare command
+	;cmp	ecx, 0		; Compare ECX to 0
+	;jz	quit		; If the user entered the quit command, quit program
+
+	; Check for make file command
+	;mov	ebx, arg1	; Move argument buffer into EBX
+	;call	getFirst
+
+	;call	clrBuff		; Clear the input buffer
 
 	jmp	inLoop
 
