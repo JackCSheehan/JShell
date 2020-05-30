@@ -155,18 +155,66 @@ clrBuffExit:
 	pop	ecx
 	ret
 
+; This function takes the user's input and extracts the command from it. This function expects the input buffer in EAX
+; and a command buffer in EBX. EAX, ECX, and EDX will be preserved.
+getComm:	
+	; Preserve register values
+	push	edx
+	push	ecx
+	push	eax
+
+findFirstCommChar:		; Loop to find the first non-space character of the input; ignores any spaces before the command
+	cmp	byte[eax], 32	; Compare current char in EAX with a space
+	jne	extractComm	; If the current chracter is not a space, jump to a loop that will extract the first command
+
+	inc	eax		; Increment EAX to point to the next byte in the string
+	jmp	findFirstCommChar
+
+extractComm:			; Loop that will extract the command from the input; reads until a space or newline is encountered
+	; NOTE: the below only prints newlines. EAX is working correctly but copying process is not
+	push	eax
+	mov	eax, ebx
+	call	println
+	pop	eax
+
+	mov	ch, byte [eax]	; Put current byte pointed to by EAX into CH
+	
+	cmp	byte[eax], 32	; Compare current byte to a space
+	jz	quitGetComm	; If the current byte is a space, jump to the quit routines
+
+	cmp	byte[eax], 10		; Compare current byte to a newline
+	jz	quitGetComm	; If current byte is a newline, jump to the quit routines
+
+	mov	byte[ebx], ch	; Copy current byte in input buffer into command buffer		
+		
+	inc	ebx		; Increment EBX to next byte
+	inc 	eax		; Increment EAX to next byte
+	jmp	extractComm
+	
+quitGetComm:			; Closing routines for this function
+	inc	ebx		; Increment byte pointed to by EBX	
+	mov	byte[ebx], 0	; Add a null terminator to command string
+
+	; Replace register value
+	pop	eax
+	pop	ecx
+	pop	edx
+	ret
+
 ; This function takes the console input buffer in EAX and reads out the first argument. For example, in the the command
 ; 'mkf main.asm', 'mkf' is the command and 'main.asm' is the first argument. This first argument will be put into a
-; buffer expected in EBX. ECX and EDX are preserved. Arguments are expected to be separated with one or more space (ASCII 32).
+; buffer expected in EBX. ECX, EAX, and EDX are preserved. Arguments are expected to be separated with one or more space (ASCII 32).
 getFirstArg:
 	; Preserve register values
 	push	edx
 	push	ecx
+	push	eax
 ; TODO: add checks to null-terminator
 
+; TODO: allow spaces before command
 findSpace:			; Loop to find the boundary between the command the argument
 	cmp	byte[eax], 32	; Compare the current character in EAX with ASCII 32 (space)
-	jz	findArgstart	; If a space was encountered, jump to a loop that looks for the start of the arg;
+	jz	findFirstArg	; If a space was encountered, jump to a loop that looks for the start of the arg;
 				; needed so that the user can put more than one space between the command and the argument
 				; and it will still work.
 	inc	eax		; If the current character is not a space, increment EAX until a space is found
@@ -179,8 +227,18 @@ findFirstArg:			; Loop to find the starting charater of the first arg
 	inc	eax		; Increment EAX to next byte
 	jmp 	findFirstArg
 
-extractArg:			; Loop to extract argument 1 from the string pointed to by EAX
-	; TODO: put byte[EAX] into ECX and put THAT char into byte[ebx]
-	;mov	byte[ebx], byte[eax]	; Move current byte from EAX into EBX (needed to copy string over)
-	;NOTE: above line won't assemble if uncommented -- meant only as a placeholder until this function is finished
+extractArg:			; Loop to extract argument 1 from the string pointed to by EAX	
+	mov	ch, byte[eax]	; Move current byte in EAX to ch (needed since NASM only allows one memory operation per line)
+	cmp	ch, 32		; Compare current byte to a space
+	jz	quitGetFirstArg	; Once a space is reached, the argument has been found
 
+	mov	byte[ebx], ch	; Move current byte from EAX into EBX (needed to copy string over)
+	inc	eax		; Increment EAX to next byte
+	jmp	extractArg
+
+quitGetFirstArg:		; Closing routines for this function
+	; Restore register values
+	pop	eax
+	pop	ecx
+	pop	edx
+	ret
