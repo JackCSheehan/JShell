@@ -155,9 +155,32 @@ clrBuffExit:
 	pop	ecx
 	ret
 
+; This function takes the console input buffer in EAX and reads out the first argument. For example, in the the command
+; 'mkf main.asm', 'mkf' is the command and 'main.asm' is the first argument. This first argument will be put into a
+; buffer expected in EBX. ECX and EDX are preserved. Arguments are expected to be separated with one or more space (ASCII 32).
+getFirstArg:
+	; Preserve register values
+	push	edx
+	push	ecx
+; TODO: add checks to null-terminator
 
+findSpace:			; Loop to find the boundary between the command the argument
+	cmp	byte[eax], 32	; Compare the current character in EAX with ASCII 32 (space)
+	jz	findArgstart	; If a space was encountered, jump to a loop that looks for the start of the arg;
+				; needed so that the user can put more than one space between the command and the argument
+				; and it will still work.
+	inc	eax		; If the current character is not a space, increment EAX until a space is found
+	jmp	findSpace
 
+findFirstArg:			; Loop to find the starting charater of the first arg
+	cmp	byte[eax], 32	; Compare current byte in EAX string with space
+	jnz	extractArg	; If the current byte is not a space, then EAX currently points to the first char of argument 1
 
+	inc	eax		; Increment EAX to next byte
+	jmp 	findFirstArg
 
-
+extractArg:			; Loop to extract argument 1 from the string pointed to by EAX
+	; TODO: put byte[EAX] into ECX and put THAT char into byte[ebx]
+	;mov	byte[ebx], byte[eax]	; Move current byte from EAX into EBX (needed to copy string over)
+	;NOTE: above line won't assemble if uncommented -- meant only as a placeholder until this function is finished
 
