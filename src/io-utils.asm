@@ -48,9 +48,43 @@ lenLoop:			; Loop to find length of string
 	cmp	byte [ebx], 0	; Compare byte at EBX with 0
 	jz	strEnd	
 	inc	ebx		; Increment EBX to move to next character
-	jmp	lenLoop		; Loop back 
+	jmp	lenLoop	; Loop back 
 
-strEnd:				; Where to jump when null terminator has been found
+strEnd:			; Where to jump when null terminator has been found
+	sub	ebx, eax	; Calculate number of characters; result is stored in EBX
+	
+	mov	edx, ebx	; Store length of string in EDX
+	mov	ecx, eax	; Move address of string to ECX
+	mov	ebx, 1		; Store 1 in EBX; indicates STDOUT
+	mov	eax, 4		; Store 4 in EAX; incates sys_write
+	int	0x80		; Call interrupt handler to print the string
+
+	; Restore values of registers
+	pop	eax
+	pop	ebx
+	pop	ecx
+	pop	edx
+	ret
+	
+; This function prints the message given in EAX; message must be terminated by a space.
+; Original values of the four gen purpose registers are reserved. The message is
+; printed without a newline.
+prints:
+	; Preserve register values
+	push	edx
+	push	ecx
+	push	ebx
+	push	eax
+		
+	mov	ebx, eax	; Move address of string in EAX -> EBX
+
+slenLoop:			; Loop to find length of string
+	cmp	byte [ebx], 32	; Compare byte at EBX with 0
+	jz	sstrEnd	
+	inc	ebx		; Increment EBX to move to next character
+	jmp	slenLoop	; Loop back 
+
+sstrEnd:			; Where to jump when null terminator has been found
 	sub	ebx, eax	; Calculate number of characters; result is stored in EBX
 	
 	mov	edx, ebx	; Store length of string in EDX
@@ -66,42 +100,48 @@ strEnd:				; Where to jump when null terminator has been found
 	pop	edx
 	ret
 
-; Compares two strings -- one in EAX and one in EBX. If they are equal, 0 is put into ECX.
-; If they aren't, 1 is put into ECX. The original values of EAX, EBX, and EDX are preserved
-; Strings MUST be null-terminated.
+; Compares two strings -- one in EBX and one in ECX. Stops comparing strings once the string in EBX hits a newline or space
+; at the same time that the string in ECX hits an ASCII 0. This function is designed for testing commands against parsed args. 
+; EDX will equal 0 if the strings match and 1 if they don't. EBX will contain the argument extracted from the input string
+; and ECX will contain the command string that is being checked against.
 cmpStr:
-	; Preserve EAX, EBX, and EDX
-	push	edx
+	; Preserve EBX and ECX
+	push	ecx
 	push	ebx
-	push	eax
 
 cmpLoop:			; Loop to compare each character of each string
-	mov	dh, byte[eax]
-	cmp	byte[ebx], dh	; Compare the equivalent bytes of each string
-	jnz	notEqual	; If there's a mismatch, jump to notEqual
-	
-	cmp	byte[eax], 0	; Compare EAX to 0
-	jz	equal		; If execution gets this far then we know the characters are equivalent. If one of the characters
-				; is 0, then we have reached the end of both strings without any mismatch. We know, then, that
-				; these strings are equivalent.
-	inc	eax		; Increment both EAX and EBX addresses
-	inc	ebx		
-	
-	jmp 	cmpLoop
+	cmp	byte[ebx], 10	; Compare current byte pointed to by EBX to newline
+	jz	checkNullTerm	; If current byte pointed to by EBX is newline, check string in ECX for ASCII 0
 
-equal:				; Jumps here if strings are equal
-	mov	ecx, 0		; Put 0 into ECX to indicate that the strings are the same
-	jmp 	exit
+	cmp	byte[ebx], 32	; Compare current char to space
+	jz	checkNullTerm	; If current byte is space, check for ASCII 0 in ECX string
+
+	mov	dh, [ebx]	; Move byte pointed to by EBX into DH
+	cmp	byte[ecx], dh	; Compare equivalent bytes between strings
+	jnz	notEqual	; If these bytes are mismatched, then these strings are not equal
+
+	inc	ebx		; Increment EBX and ECX to point to the next character in each string
+	inc	ecx
+
+	jmp	cmpLoop
+
+checkNullTerm:			; Section that checks for \0 in current byte pointed to by ECX
+	cmp	byte[ecx], 0	; Compares current byte in ECX to \0
+	jz	equal		; If ECX points to \0 at the same time that EBX points to \n or a space, then the strings are equal
+	jnz	notEqual	; If ECX doesn't point to \0, these strings are not equal
+
+equal:				; Jump here if strings are equal
+	mov	edx, 0		; Put 0 in EDX to indicate that the strings are equal
+	jmp	quitCmpStr
 
 notEqual:			; Jumps here if strings are not equal
-	mov	ecx, 1		; Put 1 into ECX to indicate that the strings are not the same
-	jmp 	exit
+	mov	edx, 1		; Put 1 into ECX to indicate that the strings are not the same
+	jmp 	quitCmpStr
 
-exit:				; Function exit routines
-	; Replace values in EAX, EBX, and EDX registers
-	pop 	eax
-	pop	ebx
-	pop	edx
+quitCmpStr:			; Function exit routines
+	; Replace values in EBX and ECX
+	pop 	ebx
+	pop	ecx
 	ret
 
 ; This function gets a line of input from STDIN. EAX needs a pointer to the input buffer. This function will 
@@ -155,90 +195,45 @@ clrBuffExit:
 	pop	ecx
 	ret
 
-; This function takes the user's input and extracts the command from it. This function expects the input buffer in EAX
-; and a command buffer in EBX. EAX, ECX, and EDX will be preserved.
-getComm:	
-	; Preserve register values
-	push	edx
-	push	ecx
+; This function finds the command input by the user. In the input 'mk
+
+; This function finds the next arg in the input string. Takes a pointer to the first character of an argument in EBX.
+; Stores a pointer to the first character of the next argument in EBX. For example, in the
+; input string 'mkf main.asm -f', '-f' and 'main.asm' are both arguments. If this function was called with a pointer
+; to the first character of 'main.asm' in EBX, the function would put a pointer to the first character of '-f' in
+; EBX. If EBX currently points to the first character of the last argument, EBX will contain 0.
+getNextArg:
+	; Preserve EAX
 	push	eax
 
-findFirstCommChar:		; Loop to find the first non-space character of the input; ignores any spaces before the command
-	cmp	byte[eax], 32	; Compare current char in EAX with a space
-	jne	extractComm	; If the current chracter is not a space, jump to a loop that will extract the first command
+findDelimSpace:			; Loop that searches the input string until the space between args is found. If a newline is found, function move 0 into EBX
+	cmp	byte[eax], 10	; Compare current byte pointed to by EAX to the newline chracter
+	jz	foundLastArg	; If the current byte is a newline, then this is the last argument and there are no more to look for
 
-	inc	eax		; Increment EAX to point to the next byte in the string
-	jmp	findFirstCommChar
+	cmp	byte[eax], 32	; Compare current byte pointed to by EAX to a space
+	jz	findFirstChar	; If the current character is a space, then the delimiting space between args has been found; jump to label that will find first char of next arg
 
-extractComm:			; Loop that will extract the command from the input; reads until a space or newline is encountered
-	; NOTE: the below only prints newlines. EAX is working correctly but copying process is not
-	push	eax
-	mov	eax, ebx
-	call	println
+	inc	eax		; Increment EAX to point to next byte in input string
+	jmp	findDelimSpace
+
+findFirstChar:			; Section that handles finding the first char of the next arg
+	cmp	byte[eax], 10	; If EAX points to a newline before any characters have been found, then there are no more args
+	jz	foundLastArg
+
+	cmp	byte[eax], 32	; Compare current byte pointed to by EAX to a space
+	jnz	foundNextArg	; If current char is not a space, then EAX contains a pointer to the next arg
+
+	inc	eax		; Increment EAX to point to next byte in string
+	jmp	findFirstChar
+
+foundNextArg:			; Section that handles what to do when next arg has been found
+	mov	ebx, eax	; Move byte pointed to by EAX into EBX
+	jmp	quitGetNextArg	; Jump to quit routines
+
+foundLastArg:			; Section that handles if there are no more args to look for
+	mov	ebx, 0		; Move 0 into EDX to indicate that there are no more args
+
+quitGetNextArg:			; Exit routines for this function
+	; Replace EAX value
 	pop	eax
-
-	mov	ch, byte [eax]	; Put current byte pointed to by EAX into CH
-	
-	cmp	byte[eax], 32	; Compare current byte to a space
-	jz	quitGetComm	; If the current byte is a space, jump to the quit routines
-
-	cmp	byte[eax], 10		; Compare current byte to a newline
-	jz	quitGetComm	; If current byte is a newline, jump to the quit routines
-
-	mov	byte[ebx], ch	; Copy current byte in input buffer into command buffer		
-		
-	inc	ebx		; Increment EBX to next byte
-	inc 	eax		; Increment EAX to next byte
-	jmp	extractComm
-	
-quitGetComm:			; Closing routines for this function
-	inc	ebx		; Increment byte pointed to by EBX	
-	mov	byte[ebx], 0	; Add a null terminator to command string
-
-	; Replace register value
-	pop	eax
-	pop	ecx
-	pop	edx
-	ret
-
-; This function takes the console input buffer in EAX and reads out the first argument. For example, in the the command
-; 'mkf main.asm', 'mkf' is the command and 'main.asm' is the first argument. This first argument will be put into a
-; buffer expected in EBX. ECX, EAX, and EDX are preserved. Arguments are expected to be separated with one or more space (ASCII 32).
-getFirstArg:
-	; Preserve register values
-	push	edx
-	push	ecx
-	push	eax
-; TODO: add checks to null-terminator
-
-; TODO: allow spaces before command
-findSpace:			; Loop to find the boundary between the command the argument
-	cmp	byte[eax], 32	; Compare the current character in EAX with ASCII 32 (space)
-	jz	findFirstArg	; If a space was encountered, jump to a loop that looks for the start of the arg;
-				; needed so that the user can put more than one space between the command and the argument
-				; and it will still work.
-	inc	eax		; If the current character is not a space, increment EAX until a space is found
-	jmp	findSpace
-
-findFirstArg:			; Loop to find the starting charater of the first arg
-	cmp	byte[eax], 32	; Compare current byte in EAX string with space
-	jnz	extractArg	; If the current byte is not a space, then EAX currently points to the first char of argument 1
-
-	inc	eax		; Increment EAX to next byte
-	jmp 	findFirstArg
-
-extractArg:			; Loop to extract argument 1 from the string pointed to by EAX	
-	mov	ch, byte[eax]	; Move current byte in EAX to ch (needed since NASM only allows one memory operation per line)
-	cmp	ch, 32		; Compare current byte to a space
-	jz	quitGetFirstArg	; Once a space is reached, the argument has been found
-
-	mov	byte[ebx], ch	; Move current byte from EAX into EBX (needed to copy string over)
-	inc	eax		; Increment EAX to next byte
-	jmp	extractArg
-
-quitGetFirstArg:		; Closing routines for this function
-	; Restore register values
-	pop	eax
-	pop	ecx
-	pop	edx
 	ret
