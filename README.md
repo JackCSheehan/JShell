@@ -53,9 +53,9 @@ $ lst [path]
 ```
 
 ### Run Program
-Runs the given program at the location given in *path.*
+Runs the given program at the location given in *path.* Any arguments provided after the *path* arg will be passed as a command line argument to the programming being called.
 ```
-$ run <path>
+$ run <path> [args...]
 ```
 
 ### Get Time
