@@ -195,7 +195,20 @@ clrBuffExit:
 	pop	ecx
 	ret
 
-; This function finds the command input by the user. In the input 'mk
+; This function is used to find the first character of the input string that is not a space. This is to allow extra
+; spaces before a user's input to be ignored. This function onnly changes the value of EAX (if needed). It will
+; increment EAX until a non-space character is found.
+skipLeadSpace:
+	cmp	byte[eax], 32	; Compare byte pointed to by EAX to space
+	jz	incPtr		; Jump to label where EAX will be incremented if EAX points to a space
+	jnz	quitSkipLeadSpace
+
+incPtr:				; Label that handles incrementing condition
+	inc	eax		; Increment EAX to point to next byte in string
+	jmp	skipLeadSpace	; Jump back to top of function
+
+quitSkipLeadSpace:		; Function exit routines once first input chracter has been found
+	ret
 
 ; This function finds the next arg in the input string. Takes a pointer to the first character of an argument in EBX.
 ; Stores a pointer to the first character of the next argument in EBX. For example, in the
