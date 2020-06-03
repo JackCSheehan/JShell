@@ -175,17 +175,19 @@ clrBuff:
 	push	ebx
 
 	mov	ebx, eax	; Use EBX as a pointer for incrementing through buffer
-	mov	ecx, 0		; ECX is a counter that goes 0 -> 100
+	mov	ecx, 0		; ECX is a counter that goes 0 -> 99
 
 clrBuffLoop:			; Loop for clearing buffer pointed to by EAX
 	cmp	byte[ebx], 0
 	jz	clrBuffExit	; Stop when a zero is encountered
 
-	cmp	ecx, 100
+	cmp	ecx, 99
 	jz	clrBuffExit	; Stop wen ECX has reached 100
 
 	mov	byte[ebx], 0	; Replace current byte in buffer with 0
+	
 	inc	ebx		; Increment address to move to next byte in buffer
+	inc	ecx		; Increment counter
 
 	jmp 	clrBuffLoop
 
@@ -195,7 +197,20 @@ clrBuffExit:
 	pop	ecx
 	ret
 
-; This function finds the command input by the user. In the input 'mk
+; This function is used to find the first character of the input string that is not a space. This is to allow extra
+; spaces before a user's input to be ignored. This function onnly changes the value of EAX (if needed). It will
+; increment EAX until a non-space character is found.
+skipLeadSpace:
+	cmp	byte[eax], 32	; Compare byte pointed to by EAX to space
+	jz	incPtr		; Jump to label where EAX will be incremented if EAX points to a space
+	jnz	quitSkipLeadSpace
+
+incPtr:				; Label that handles incrementing condition
+	inc	eax		; Increment EAX to point to next byte in string
+	jmp	skipLeadSpace	; Jump back to top of function
+
+quitSkipLeadSpace:		; Function exit routines once first input chracter has been found
+	ret
 
 ; This function finds the next arg in the input string. Takes a pointer to the first character of an argument in EBX.
 ; Stores a pointer to the first character of the next argument in EBX. For example, in the
@@ -237,3 +252,43 @@ quitGetNextArg:			; Exit routines for this function
 	; Replace EAX value
 	pop	eax
 	ret
+
+; This function expects a pointer to a newline-terminated argument in EBX and replaces the newline with an ASCII 0. Used for
+; creating files and directories to prevent the newline ending up in the name. Preserves EBX.
+termAtReturn:
+	push	ebx		; Preserve EBX
+
+findReturn:			; Loop that finds newline
+	cmp	byte[ebx], 10	; Compare byte pointed to by EBX to newline
+	jz 	term		; Terminate string if current byte is newline
+
+	inc	ebx		; Increment EBX to point to next byte
+	jmp	findReturn
+
+term:				; Section of code that actually terminates the string at the newline
+	mov	byte[ebx], 0	; Move \0 into current byte
+	
+	pop	ebx		; Restore EBX value
+	ret
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
