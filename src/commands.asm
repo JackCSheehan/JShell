@@ -7,9 +7,9 @@ quit:
 	int	0x80		
 	ret
 
-; This function creates a file using the given path. Expects the file path in EBX. Preserves ECX.
+; This function creates a file using the given path. Expects the file path in EBX. Preserves EAX.
 mkf:
-	push	ecx		;  Preserve ECX
+	push	eax	
 
 	; Create file
 	mov	ecx, 0o777	; Add create perms
@@ -20,5 +20,19 @@ mkf:
 	mov	eax, 6		; OPCODE for sys_close
 	int	0x80
 
-	pop	ecx		; Restore ECX
+	pop	eax
 	ret
+
+; This function creates a directory using the given path. Expects the file path in EBX.
+; Preserves EAX.
+mkdr:
+	push	eax
+
+	mov	ecx, 0o755	; Mode
+	mov	eax, 39		; OPCODE for mkdir syscall
+	int	0x80
+
+	pop	eax
+	ret
+
+
