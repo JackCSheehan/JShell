@@ -35,6 +35,9 @@ inLoop:				; Input Loop
 	mov	eax, input	; Move buffer into EAX and get the input
 	call	getln
 	
+	; Remove leading whitespace from input string
+	call	skipLeadSpace
+
 	; Extract command from input
 	mov	ebx, eax	; move pointer to input string into EBX since the command is the first word type
 
