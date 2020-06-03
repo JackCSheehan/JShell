@@ -19,7 +19,7 @@ $ mkf <path>
 ### Make a Directory
 Creates a new directory. Specify path and filename in the *path* argument.
 ```
-$ mkdir <path>
+$ mkdr <path>
 ```
 
 ### Remove a File
@@ -31,7 +31,7 @@ $ rmf <path>
 ### Remove a Directory
 Removes given directory. Specify path and filename in the *path* argument.
 ```
-$ rmdir <path>
+$ rmdr <path>
 ```
 
 ### Rename a File
