@@ -175,17 +175,19 @@ clrBuff:
 	push	ebx
 
 	mov	ebx, eax	; Use EBX as a pointer for incrementing through buffer
-	mov	ecx, 0		; ECX is a counter that goes 0 -> 100
+	mov	ecx, 0		; ECX is a counter that goes 0 -> 99
 
 clrBuffLoop:			; Loop for clearing buffer pointed to by EAX
 	cmp	byte[ebx], 0
 	jz	clrBuffExit	; Stop when a zero is encountered
 
-	cmp	ecx, 100
+	cmp	ecx, 99
 	jz	clrBuffExit	; Stop wen ECX has reached 100
 
 	mov	byte[ebx], 0	; Replace current byte in buffer with 0
+	
 	inc	ebx		; Increment address to move to next byte in buffer
+	inc	ecx		; Increment counter
 
 	jmp 	clrBuffLoop
 
@@ -250,3 +252,43 @@ quitGetNextArg:			; Exit routines for this function
 	; Replace EAX value
 	pop	eax
 	ret
+
+; This function expects a pointer to a newline-terminated argument in EBX and replaces the newline with an ASCII 0. Used for
+; creating files and directories to prevent the newline ending up in the name. Preserves EBX.
+termAtReturn:
+	push	ebx		; Preserve EBX
+
+findReturn:			; Loop that finds newline
+	cmp	byte[ebx], 10	; Compare byte pointed to by EBX to newline
+	jz 	term		; Terminate string if current byte is newline
+
+	inc	ebx		; Increment EBX to point to next byte
+	jmp	findReturn
+
+term:				; Section of code that actually terminates the string at the newline
+	mov	byte[ebx], 0	; Move \0 into current byte
+	
+	pop	ebx		; Restore EBX value
+	ret
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
