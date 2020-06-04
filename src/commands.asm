@@ -35,4 +35,12 @@ mkdr:
 	pop	eax
 	ret
 
+; This function removes the given file name. Expects path in EBX. Preserves EAX.
+rmf:
+	push	eax
 
+	mov	eax, 10		; OPCODE for unlink file
+	int	0x80
+
+	pop	eax
+	ret
