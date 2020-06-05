@@ -26,7 +26,8 @@ rbComm:		db	"rb", 0x00							; Command to reboot system
 rbConfirm:	db	"confirm", 0x00							; Argument needed to confirm reboot command
 
 ; Errors
-tooFewArgsErr:	db	"The command you entered was not given enough arguments", 0x00	; Message shown if command isn't provided with enough arguments
+tooFewArgsErr:	db	"Error: The command you entered was not given enough arguments", 0x00	; Message shown if command isn't provided with enough arguments
+noCommErr:	db	"Error: Command not found", 0x00					; Message show if command typed in isn't found
 
 SECTION .bss
 input:		resb	100		; Reserve 100 bytes for input
@@ -83,6 +84,9 @@ inLoop:				; Input Loop
 	call	cmpStr		; Compare target command with command pulled from input string
 	cmp	edx, 0		; If EDX is 0, user called rmdr command
 	jz	checkRmdr	; Jump to routines for rmdr command
+
+	; If no other command works, show error
+	jmp	showNoCommErr
 
 repeat:				; Label to jump to when commands need to repeat input loop	
 	call	clrBuff		; Clear the input buffer
