@@ -16,7 +16,7 @@ mkfComm:	db	"mkf", 0x00							; Command to create a new file
 mkdrComm:	db	"mkdr", 0x00							; Command to create a new directory
 rmfComm:	db	"rmf", 0x00							; Command to remove file
 rmdrComm:	db	"rmdr", 0x00							; Command to remove directory
-rnComm:		db	"fn", 0x00							; Command to rename file
+rnComm:		db	"rn", 0x00							; Command to rename file
 printComm:	db	"print", 0x00							; Command to print file contents
 lstComm:	db	"lst", 0x00							; Command to list directories
 rComm:		db	"r", 0x00							; Command to run a program
@@ -34,7 +34,7 @@ input:		resb	100		; Reserve 100 bytes for input
 
 SECTION .text
 global _start
-
+;TODO: write termAtSpace to terminate at space; redo comments in getNextArg
 _start:
 	; Display greetting message
 	mov	eax, initMsg
@@ -80,10 +80,16 @@ inLoop:				; Input Loop
 	jz	checkRmf	; Jump to routines for rmf command
 
 	; Check for remove directory command
-	mov	ecx, rmdrComm	; MOve remove directory command into ECX
+	mov	ecx, rmdrComm	; Move remove directory command into ECX
 	call	cmpStr		; Compare target command with command pulled from input string
 	cmp	edx, 0		; If EDX is 0, user called rmdr command
 	jz	checkRmdr	; Jump to routines for rmdr command
+	
+	; Check for rename command
+	mov	ecx, rnComm	; Move rename command into ECX
+	call	cmpStr		; Compare target command with command pulled from input string
+	cmp	edx, 0		; If EDX is 0, the user called the rn command
+	jz	checkRn		; Jump to routines for rn commands
 
 	; If no other command works, show error
 	jmp	showNoCommErr

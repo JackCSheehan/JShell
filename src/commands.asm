@@ -55,7 +55,19 @@ rmdr:
 	pop	eax
 	ret
 
+; This function renames the given directory. Expects path in EBX. Preserve EAX.
+rn:
+	; The two args were pushed onto stack
+	pop	ecx		; Put newname arg into ECX
+	pop	ebx		; Put oldname arg into EBX	
 
+	push	eax
+
+	mov	eax, 38		; OPCODE for rename
+	int	0x80
+
+	pop	eax
+	ret
 
 
 
