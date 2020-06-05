@@ -42,3 +42,19 @@ callRmf:
 	call	termAtReturn	; Remove newline from input
 	call	rmf
 	jmp	repeat
+
+; Check for args for rmf command
+checkRmdr:
+	call	getNextArg	; Get argument
+	cmp	ebx, 0		; IF EBX contains 0, there are too few args
+	jz	showTooFewArgsErr
+	jnz	callRmdr	; Jump to rmdr call routines
+	
+; Call routines for rmdr
+callRmdr:
+	call	termAtReturn	; Remove newline from input
+	call	rmdr
+	jmp	repeat
+
+
+
