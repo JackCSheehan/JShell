@@ -217,32 +217,29 @@ quitSkipLeadSpace:		; Function exit routines once first input chracter has been 
 ; input string 'mkf main.asm -f', '-f' and 'main.asm' are both arguments. If this function was called with a pointer
 ; to the first character of 'main.asm' in EBX, the function would put a pointer to the first character of '-f' in
 ; EBX. If EBX currently points to the first character of the last argument, EBX will contain 0.
-getNextArg:
-	; Preserve EAX
-	push	eax
-
+getNextArg:	
+;TODO: update comments
 findDelimSpace:			; Loop that searches the input string until the space between args is found. If a newline is found, function move 0 into EBX
-	cmp	byte[eax], 10	; Compare current byte pointed to by EAX to the newline chracter
+	cmp	byte[ebx], 10	; Compare current byte pointed to by EAX to the newline chracter
 	jz	foundLastArg	; If the current byte is a newline, then this is the last argument and there are no more to look for
 
-	cmp	byte[eax], 32	; Compare current byte pointed to by EAX to a space
+	cmp	byte[ebx], 32	; Compare current byte pointed to by EAX to a space
 	jz	findFirstChar	; If the current character is a space, then the delimiting space between args has been found; jump to label that will find first char of next arg
 
-	inc	eax		; Increment EAX to point to next byte in input string
+	inc	ebx		; Increment EAX to point to next byte in input string
 	jmp	findDelimSpace
 
-findFirstChar:			; Section that handles finding the first char of the next arg
-	cmp	byte[eax], 10	; If EAX points to a newline before any characters have been found, then there are no more args
+findFirstChar:			; Section that handles finding the first char of the next arg	
+	cmp	byte[ebx], 10	; If EAX points to a newline before any characters have been found, then there are no more args
 	jz	foundLastArg
 
-	cmp	byte[eax], 32	; Compare current byte pointed to by EAX to a space
+	cmp	byte[ebx], 32	; Compare current byte pointed to by EAX to a space
 	jnz	foundNextArg	; If current char is not a space, then EAX contains a pointer to the next arg
 
-	inc	eax		; Increment EAX to point to next byte in string
+	inc	ebx		; Increment EAX to point to next byte in string
 	jmp	findFirstChar
 
 foundNextArg:			; Section that handles what to do when next arg has been found
-	mov	ebx, eax	; Move byte pointed to by EAX into EBX
 	jmp	quitGetNextArg	; Jump to quit routines
 
 foundLastArg:			; Section that handles if there are no more args to look for
@@ -250,7 +247,6 @@ foundLastArg:			; Section that handles if there are no more args to look for
 
 quitGetNextArg:			; Exit routines for this function
 	; Replace EAX value
-	pop	eax
 	ret
 
 ; This function expects a pointer to a newline-terminated argument in EBX and replaces the newline with an ASCII 0. Used for
@@ -270,23 +266,6 @@ term:				; Section of code that actually terminates the string at the newline
 	
 	pop	ebx		; Restore EBX value
 	ret
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

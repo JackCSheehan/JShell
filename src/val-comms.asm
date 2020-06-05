@@ -56,5 +56,27 @@ callRmdr:
 	call	rmdr
 	jmp	repeat
 
+; Check for args for rn command
+checkRn:
+	; Grab first arg
+	call	getNextArg	; Get argument
+	
+	cmp	ebx, 0		; If EBX contains 0, there are too few args
+	jz	showTooFewArgsErr
+	call	termAtSpace	; Terminate arg at space
+	push	ebx		; If first arg found, push onto stack
 
+	; Grab second arg	
+	call	getNextArg
 
+	cmp	ebx, 0		; If EBX contains 0, there are too few args
+	jz	showTooFewArgsErr
+	call	termAtReturn	; Remove newline from arg
+	push	ebx		; If second arg found, push onto stack
+
+	jmp	callRn
+
+; Call routines for rn
+callRn:
+	call	rn		
+	jmp	repeat
