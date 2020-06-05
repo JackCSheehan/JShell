@@ -17,7 +17,13 @@ mkdrComm:	db	"mkdr", 0x00							; Command to create a new directory
 rmfComm:	db	"rmf", 0x00							; Command to remove file
 rmdrComm:	db	"rmdr", 0x00							; Command to remove directory
 rnComm:		db	"fn", 0x00							; Command to rename file
-
+printComm:	db	"print", 0x00							; Command to print file contents
+lstComm:	db	"lst", 0x00							; Command to list directories
+rComm:		db	"r", 0x00							; Command to run a program
+timeComm:	db	"time", 0x00							; Command to give current time in UNIX
+cdComm:		db	"cd", 0x00							; Command to change current working directory
+rbComm:		db	"rb", 0x00							; Command to reboot system
+rbConfirm:	db	"confirm", 0x00							; Argument needed to confirm reboot command
 
 ; Errors
 tooFewArgsErr:	db	"The command you entered was not given enough arguments", 0x00	; Message shown if command isn't provided with enough arguments
@@ -67,10 +73,16 @@ inLoop:				; Input Loop
 	jz	checkMkdr	; Jump to routines for mkdr command
 
 	; Check for remove file command
-	mov	ecx, rmfComm	; Move remove file comamnd int oECX
-	call	cmpStr		; Compare target command with caommand pulled from input string
-	cmp	edx, 0		; I EX is 0, the user called the rmf command
+	mov	ecx, rmfComm	; Move remove file comamnd int ECX
+	call	cmpStr		; Compare target command with command pulled from input string
+	cmp	edx, 0		; If EDX is 0, the user called the rmf command
 	jz	checkRmf	; Jump to routines for rmf command
+
+	; Check for remove directory command
+	mov	ecx, rmdrComm	; MOve remove directory command into ECX
+	call	cmpStr		; Compare target command with command pulled from input string
+	cmp	edx, 0		; If EDX is 0, user called rmdr command
+	jz	checkRmdr	; Jump to routines for rmdr command
 
 repeat:				; Label to jump to when commands need to repeat input loop	
 	call	clrBuff		; Clear the input buffer

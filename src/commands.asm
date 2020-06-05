@@ -44,3 +44,19 @@ rmf:
 
 	pop	eax
 	ret
+
+; This function removes the given directory. Expects path in EBX. Preserves EAX.
+rmdr:
+	push	eax
+
+	mov	eax, 40		; OPCODE for rmdir
+	int	0x80
+
+	pop	eax
+	ret
+
+
+
+
+
+
