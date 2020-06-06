@@ -60,10 +60,11 @@ callRmdr:
 checkRn:
 	; Grab first arg
 	call	getNextArg	; Get argument
-	
+
 	cmp	ebx, 0		; If EBX contains 0, there are too few args
 	jz	showTooFewArgsErr
 	call	termAtSpace	; Terminate arg at space
+	
 	push	ebx		; If first arg found, push onto stack
 
 	; Grab second arg	
@@ -72,8 +73,10 @@ checkRn:
 	cmp	ebx, 0		; If EBX contains 0, there are too few args
 	jz	showTooFewArgsErr
 	call	termAtReturn	; Remove newline from arg
-	push	ebx		; If second arg found, push onto stack
-
+	
+	mov	ecx, ebx	; EBX now contains new name for file; move into ECX for syscall
+	pop	ebx		; Pop first arg into EBX; now EBX contains the old name; needed for syscall
+	
 	jmp	callRn
 
 ; Call routines for rn
