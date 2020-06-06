@@ -35,9 +35,9 @@ $ rmdr <path>
 ```
 
 ### Rename a File
-Renames given file. Specify path and filename in the *path* argument.
+Renames given file or directory. First argument is the path to the old file or directory, second arg is the new name for that file or directory.
 ```
-$ rn <path>
+$ rn <old> <new>
 ```
 
 ### Print Contents of File
