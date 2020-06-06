@@ -216,7 +216,9 @@ quitSkipLeadSpace:		; Function exit routines once first input chracter has been 
 ; Stores a pointer to the first character of the next argument in EBX. For example, in the
 ; input string 'mkf main.asm -f', '-f' and 'main.asm' are both arguments. If this function was called with a pointer
 ; to the first character of 'main.asm' in EBX, the function would put a pointer to the first character of '-f' in
-; EBX. If EBX currently points to the first character of the last argument, EBX will contain 0.
+; EBX. If EBX currently points to the first character of the last argument, EBX will contain 0. This function uses
+; Both spaces and \0s as delimeters. This is because certain commands take multiple arguments, and those arguments
+; need to be null-terminated before being passed as args to syscalls.
 getNextArg:	
 ;TODO: update comments
 findDelimSpace:			; Loop that searches the input string until the space between args is found. If a newline is found, function move 0 into EBX
@@ -226,6 +228,9 @@ findDelimSpace:			; Loop that searches the input string until the space between 
 	cmp	byte[ebx], 32	; Compare current byte pointed to by EAX to a space
 	jz	findFirstChar	; If the current character is a space, then the delimiting space between args has been found; jump to label that will find first char of next arg
 
+	cmp	byte[ebx], 0	; Compare current byte to 0
+	jz	findFirstChar	; If current char is 0, then delimiting char between args has been found; jump to label that will find first char of next arg
+
 	inc	ebx		; Increment EAX to point to next byte in input string
 	jmp	findDelimSpace
 
@@ -234,10 +239,17 @@ findFirstChar:			; Section that handles finding the first char of the next arg
 	jz	foundLastArg
 
 	cmp	byte[ebx], 32	; Compare current byte pointed to by EAX to a space
-	jnz	foundNextArg	; If current char is not a space, then EAX contains a pointer to the next arg
+	jnz	checkForNull	; If current char is not a space, then check EBX for a 0
 
 	inc	ebx		; Increment EAX to point to next byte in string
 	jmp	findFirstChar
+
+checkForNull:			; Section of code that checks non-space chars to see if they are \0s (acts as an && operator)
+	cmp	byte[ebx], 0	; Compare current byte to 0
+	jnz	foundNextArg	; If this byte isn't a space AND it's not a 0, then EBX points to the first char of the next arg
+
+	inc	ebx		; If control has to return to loop, increment EBX
+	jz	findFirstChar	; If the current char is a 0, then it is the delimiting 0 between two args. Must go back to loop to find an actual character
 
 foundNextArg:			; Section that handles what to do when next arg has been found
 	jmp	quitGetNextArg	; Jump to quit routines
@@ -256,16 +268,37 @@ termAtReturn:
 
 findReturn:			; Loop that finds newline
 	cmp	byte[ebx], 10	; Compare byte pointed to by EBX to newline
-	jz 	term		; Terminate string if current byte is newline
+	jz 	termR		; Terminate string if current byte is newline
 
 	inc	ebx		; Increment EBX to point to next byte
 	jmp	findReturn
 
-term:				; Section of code that actually terminates the string at the newline
+termR:				; Section of code that actually terminates the string at the newline
 	mov	byte[ebx], 0	; Move \0 into current byte
 	
 	pop	ebx		; Restore EBX value
 	ret
+
+; This function expects a pointer to a space-terminated argument in EBX and reeplaces the space with an ASCII 0. Use for
+; renaming files where two arguments are needed for the syscall.
+termAtSpace:
+	push	ebx		; Preserve EBX
+
+findSpace:			; Loop that finds space
+	cmp	byte[ebx], 32	; Compare current byte in EBX to a space
+	jz	termS		; Terminate if current byte is newline
+
+	inc	ebx		; Increment EBX to point to next byte
+	jmp	findSpace
+
+termS:				; Section of code that terminates string at space
+	mov	byte[ebx], 0	; Terminate at space
+
+	pop	ebx		; Restore EBX value to point to the beginning of the arg
+	ret
+
+
+
 
 
 
