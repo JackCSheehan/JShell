@@ -83,3 +83,21 @@ checkRn:
 callRn:
 	call	rn		
 	jmp	repeat
+
+; Check for arg for print command
+checkPrint:
+	call	getNextArg	; Get argument
+	cmp	ebx, 0		; If EBX contains 0, there are too few args
+	jz	showTooFewArgsErr
+	jnz	callPrint	; Jump to call routines for print
+
+; Call routines for print
+callPrint:
+	call	termAtReturn	; Remove newline from input	
+	call	print
+	jmp	repeat
+
+	
+
+
+

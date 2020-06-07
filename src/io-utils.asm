@@ -5,7 +5,7 @@
 ; is printed with a newline.
 println:
 	; Print message
-	call	print
+	call	_print
 
 	; Preserve register values
 	push	edx
@@ -35,7 +35,7 @@ println:
 ; This function prints the message given in EAX; message must be null-terminated.
 ; Original values of the four gen purpose registers are reserved. The message is
 ; printed without a newline.
-print:
+_print:
 	; Preserve register values
 	push	edx
 	push	ecx
@@ -167,22 +167,22 @@ getln:
 	pop	edx
 	ret
 
-; This function takes an input buffer in EAX and clears it. EBX and ECX are used but preserved.
-; NOTE: Assumes buffer size is 100.
+; This function takes an input buffer in EAX and clears it. EDX expects the size of the buffer to clear
+; EBX and ECX are used but preserved.
 clrBuff:
 	; Preserve values of registers
 	push	ecx
 	push	ebx
 
 	mov	ebx, eax	; Use EBX as a pointer for incrementing through buffer
-	mov	ecx, 0		; ECX is a counter that goes 0 -> 99
+	mov	ecx, 0		; ECX is a counter that goes 0 -> EDX
 
 clrBuffLoop:			; Loop for clearing buffer pointed to by EAX
 	cmp	byte[ebx], 0
 	jz	clrBuffExit	; Stop when a zero is encountered
 
-	cmp	ecx, 99
-	jz	clrBuffExit	; Stop wen ECX has reached 100
+	cmp	ecx, edx	; Compare counter to max buffer size in EDXX
+	jz	clrBuffExit	; Stop when ECX has reaches EDX
 
 	mov	byte[ebx], 0	; Replace current byte in buffer with 0
 	
