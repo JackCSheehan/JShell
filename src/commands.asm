@@ -67,5 +67,30 @@ rn:
 	ret
 
 
+; This function opens the given file, reads the contents into a buffer defined in main.asm, then
+; prints those contents to the console.
+print:
+	push	eax
 
+	; Open file
+	mov	ecx, 0
+	mov	eax, 5		; OPCODE for open
+	int	0x80
 
+	; Read file into buffer defined in main.asm	
+	mov	edx, 10000	; Read a max of 10,000 bytes from file
+	mov	ecx, fileBuff	; Move file buffer into ECX
+	mov	ebx, eax	; Move file descriptor given by first syscall into EBX
+	mov	eax, 3		; OPCODE for read
+	int	0x80
+
+	; Close file
+	mov	eax, 6		; OPCODE for close
+	int	0x80
+
+	mov	eax, fileBuff	; Move file buffer into EAX to print
+	call	_print		; Call print function
+
+	pop	eax
+
+	ret

@@ -11,7 +11,7 @@ initMsg:	db	"Welcome to JShell. Copyright (c) 2020 Jack Sheehan.", 0x00	; Greeti
 prompt:		db	"> ", 0x00							; Prompt to type commands
 
 ; Commands
-quitComm:	db	"quit", 0x00							; Command to quit
+quitComm:	db	"quit", 0x00 							; Command to quit
 mkfComm:	db	"mkf", 0x00							; Command to create a new file
 mkdrComm:	db	"mkdr", 0x00							; Command to create a new directory
 rmfComm:	db	"rmf", 0x00							; Command to remove file
@@ -31,10 +31,11 @@ noCommErr:	db	"Error: Command not found", 0x00					; Message show if command typ
 
 SECTION .bss
 input:		resb	100		; Reserve 100 bytes for input
+fileBuff:	resb	10000		; Reserve 10,000 bytes for file input
 
 SECTION .text
 global _start
-;TODO: write termAtSpace to terminate at space; redo comments in getNextArg
+;TODO: redo comments in getNextArg
 _start:
 	; Display greetting message
 	mov	eax, initMsg
@@ -43,7 +44,7 @@ _start:
 inLoop:				; Input Loop
 	; Display prompt
 	mov	eax, prompt
-	call	print	
+	call	_print	
 	
 	; Get input
 	mov	eax, input	; Move buffer into EAX and get the input
@@ -91,11 +92,23 @@ inLoop:				; Input Loop
 	cmp	edx, 0		; If EDX is 0, the user called the rn command
 	jz	checkRn		; Jump to routines for rn commands
 
+	; Check for print command
+	mov	ecx, printComm	; Move print command into ECX
+	call	cmpStr		; Compare target command with command pulled from input string
+	cmp	edx, 0		; If EDX is 0, user called print command
+	jz	checkPrint
+
 	; If no other command works, show error
 	jmp	showNoCommErr
 
 repeat:				; Label to jump to when commands need to repeat input loop	
+	mov	edx, 100	; Size of input buffer
 	call	clrBuff		; Clear the input buffer
+	
+	mov	eax, fileBuff	; Move file buffer into EAX to clear it
+	mov	edx, 10000	; Size of file buffer
+	call	clrBuff		; Clear file buffer
+
 	jmp	inLoop
 
 
