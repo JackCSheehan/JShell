@@ -45,10 +45,3 @@ Prints the contents of a file. Specify path and filename in the *path* argument.
 ```
 $ print <path>
 ```
-
-### Reboot
-Reboots system. Requires 'confirm' to prevent accidental reboots.
-```
-$ rb confirm
-```
-
