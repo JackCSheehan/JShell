@@ -46,30 +46,6 @@ Prints the contents of a file. Specify path and filename in the *path* argument.
 $ print <path>
 ```
 
-### List Contents of Directory
-Lists the contents of a directory. Specify path and filename in the *path* argument. If no path given, will list contents of current directory.
-```
-$ lst [path]
-```
-
-### Run Program
-Runs the given program at the location given in *path.* Any arguments provided after the *path* arg will be passed as a command line argument to the programming being called.
-```
-$ run <path> [args...]
-```
-
-### Get Time
-Returns the current time in Unix time.
-```
-$ time
-```
-
-### Change Working Directory
-Changes working directory to the given path.
-```
-$ cd <path> 
-```
-
 ### Reboot
 Reboots system. Requires 'confirm' to prevent accidental reboots.
 ```
