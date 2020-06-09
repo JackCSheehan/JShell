@@ -18,16 +18,13 @@ rmfComm:	db	"rmf", 0x00							; Command to remove file
 rmdrComm:	db	"rmdr", 0x00							; Command to remove directory
 rnComm:		db	"rn", 0x00							; Command to rename file
 printComm:	db	"print", 0x00							; Command to print file contents
-lstComm:	db	"lst", 0x00							; Command to list directories
-rComm:		db	"r", 0x00							; Command to run a program
-timeComm:	db	"time", 0x00							; Command to give current time in UNIX
-cdComm:		db	"cd", 0x00							; Command to change current working directory
-rbComm:		db	"rb", 0x00							; Command to reboot system
-rbConfirm:	db	"confirm", 0x00							; Argument needed to confirm reboot command
 
 ; Errors
 tooFewArgsErr:	db	"Error: The command you entered was not given enough arguments", 0x00	; Message shown if command isn't provided with enough arguments
 noCommErr:	db	"Error: Command not found", 0x00					; Message show if command typed in isn't found
+pnfErr:		db	"Error: path not found", 0x00						; Message shown if path given in arg isn't found
+mkErr:		db	"Error: cannot create file or directory", 0x00				; Message shown if creating path doesn't work
+rdFileErr:	db	"Error: error reading given file", 0x00					; Message shown if given file couldn't be read
 
 SECTION .bss
 input:		resb	100		; Reserve 100 bytes for input

@@ -31,6 +31,9 @@ println:
 	pop	ecx
 	pop	edx
 	ret
+; This function prints the integer given in EAX to the console
+
+
 
 ; This function prints the message given in EAX; message must be null-terminated.
 ; Original values of the four gen purpose registers are reserved. The message is
