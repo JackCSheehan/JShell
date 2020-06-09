@@ -96,8 +96,3 @@ callPrint:
 	call	termAtReturn	; Remove newline from input	
 	call	print
 	jmp	repeat
-
-	
-
-
-

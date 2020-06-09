@@ -16,6 +16,9 @@ mkf:
 	mov	eax, 8		; OPCODE for creat syscall
 	int	0x80
 	
+	cmp	eax, 0		; Check error code
+	jl	showMkErr	; Show make error if file couldn't be made
+
 	; Close file
 	mov	eax, 6		; OPCODE for sys_close
 	int	0x80
@@ -32,6 +35,9 @@ mkdr:
 	mov	eax, 39		; OPCODE for mkdir syscall
 	int	0x80
 
+	cmp	eax, 0		; Check error code
+	jl	showMkErr	; Show make error if file couldn't be made
+
 	pop	eax
 	ret
 
@@ -41,6 +47,9 @@ rmf:
 
 	mov	eax, 10		; OPCODE for unlink file
 	int	0x80
+
+	cmp	eax, 0		; Check error code in EAX
+	jl	showPnfErr	; Show path not found error if file couldn't be deleted
 
 	pop	eax
 	ret
@@ -52,6 +61,9 @@ rmdr:
 	mov	eax, 40		; OPCODE for rmdir
 	int	0x80
 
+	cmp	eax, 0		; Check error code
+	jl	showPnfErr	; Show path not found if dir couldn't be deleted
+
 	pop	eax
 	ret
 
@@ -62,6 +74,9 @@ rn:
 
 	mov	eax, 38		; OPCODE for rename
 	int	0x80
+
+	cmp	eax, 0		; Check error code
+	jl	showPnfErr	; Show pnf err if one path couldn't be found
 
 	pop	eax
 	ret
@@ -77,12 +92,18 @@ print:
 	mov	eax, 5		; OPCODE for open
 	int	0x80
 
+	cmp	eax, 0		; Check error code
+	jl	showPnfErr	; Show error if file couldn't be opened
+
 	; Read file into buffer defined in main.asm	
 	mov	edx, 10000	; Read a max of 10,000 bytes from file
 	mov	ecx, fileBuff	; Move file buffer into ECX
 	mov	ebx, eax	; Move file descriptor given by first syscall into EBX
 	mov	eax, 3		; OPCODE for read
 	int	0x80
+
+	cmp	eax, 0		; Check error code
+	jl	showRdFileErr	
 
 	; Close file
 	mov	eax, 6		; OPCODE for close
@@ -92,5 +113,4 @@ print:
 	call	_print		; Call print function
 
 	pop	eax
-
 	ret
