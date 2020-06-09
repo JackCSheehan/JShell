@@ -68,40 +68,6 @@ strEnd:			; Where to jump when null terminator has been found
 	pop	ecx
 	pop	edx
 	ret
-	
-; This function prints the message given in EAX; message must be terminated by a space.
-; Original values of the four gen purpose registers are reserved. The message is
-; printed without a newline.
-prints:
-	; Preserve register values
-	push	edx
-	push	ecx
-	push	ebx
-	push	eax
-		
-	mov	ebx, eax	; Move address of string in EAX -> EBX
-
-slenLoop:			; Loop to find length of string
-	cmp	byte [ebx], 32	; Compare byte at EBX with 0
-	jz	sstrEnd	
-	inc	ebx		; Increment EBX to move to next character
-	jmp	slenLoop	; Loop back 
-
-sstrEnd:			; Where to jump when null terminator has been found
-	sub	ebx, eax	; Calculate number of characters; result is stored in EBX
-	
-	mov	edx, ebx	; Store length of string in EDX
-	mov	ecx, eax	; Move address of string to ECX
-	mov	ebx, 1		; Store 1 in EBX; indicates STDOUT
-	mov	eax, 4		; Store 4 in EAX; incates sys_write
-	int	0x80		; Call interrupt handler to print the string
-
-	; Restore values of registers
-	pop	eax
-	pop	ebx
-	pop	ecx
-	pop	edx
-	ret
 
 ; Compares two strings -- one in EBX and one in ECX. Stops comparing strings once the string in EBX hits a newline or space
 ; at the same time that the string in ECX hits an ASCII 0. This function is designed for testing commands against parsed args. 
@@ -223,28 +189,28 @@ quitSkipLeadSpace:		; Function exit routines once first input chracter has been 
 ; Both spaces and \0s as delimeters. This is because certain commands take multiple arguments, and those arguments
 ; need to be null-terminated before being passed as args to syscalls.
 getNextArg:	
-;TODO: update comments
+
 findDelimSpace:			; Loop that searches the input string until the space between args is found. If a newline is found, function move 0 into EBX
-	cmp	byte[ebx], 10	; Compare current byte pointed to by EAX to the newline chracter
+	cmp	byte[ebx], 10	; Compare current byte pointed to by EBX to the newline chracter
 	jz	foundLastArg	; If the current byte is a newline, then this is the last argument and there are no more to look for
 
-	cmp	byte[ebx], 32	; Compare current byte pointed to by EAX to a space
+	cmp	byte[ebx], 32	; Compare current byte pointed to by EBX to a space
 	jz	findFirstChar	; If the current character is a space, then the delimiting space between args has been found; jump to label that will find first char of next arg
 
 	cmp	byte[ebx], 0	; Compare current byte to 0
 	jz	findFirstChar	; If current char is 0, then delimiting char between args has been found; jump to label that will find first char of next arg
 
-	inc	ebx		; Increment EAX to point to next byte in input string
+	inc	ebx		; Increment EBX to point to next byte in input string
 	jmp	findDelimSpace
 
 findFirstChar:			; Section that handles finding the first char of the next arg	
-	cmp	byte[ebx], 10	; If EAX points to a newline before any characters have been found, then there are no more args
+	cmp	byte[ebx], 10	; If EBX points to a newline before any characters have been found, then there are no more args
 	jz	foundLastArg
 
-	cmp	byte[ebx], 32	; Compare current byte pointed to by EAX to a space
+	cmp	byte[ebx], 32	; Compare current byte pointed to by EBX to a space
 	jnz	checkForNull	; If current char is not a space, then check EBX for a 0
 
-	inc	ebx		; Increment EAX to point to next byte in string
+	inc	ebx		; Increment EBX to point to next byte in string
 	jmp	findFirstChar
 
 checkForNull:			; Section of code that checks non-space chars to see if they are \0s (acts as an && operator)
@@ -258,10 +224,9 @@ foundNextArg:			; Section that handles what to do when next arg has been found
 	jmp	quitGetNextArg	; Jump to quit routines
 
 foundLastArg:			; Section that handles if there are no more args to look for
-	mov	ebx, 0		; Move 0 into EDX to indicate that there are no more args
+	mov	ebx, 0		; Move 0 into EBX to indicate that there are no more args
 
 quitGetNextArg:			; Exit routines for this function
-	; Replace EAX value
 	ret
 
 ; This function expects a pointer to a newline-terminated argument in EBX and replaces the newline with an ASCII 0. Used for
@@ -299,11 +264,3 @@ termS:				; Section of code that terminates string at space
 
 	pop	ebx		; Restore EBX value to point to the beginning of the arg
 	ret
-
-
-
-
-
-
-
-

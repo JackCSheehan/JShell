@@ -32,7 +32,6 @@ fileBuff:	resb	10000		; Reserve 10,000 bytes for file input
 
 SECTION .text
 global _start
-;TODO: redo comments in getNextArg
 _start:
 	; Display greetting message
 	mov	eax, initMsg
