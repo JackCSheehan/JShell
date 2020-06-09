@@ -1,5 +1,5 @@
 # JShell
-A simple Linux shell written entirely in x86 assembly language using the NASM syntax. I wrote JShell to teach myself assembly and to familiarize myself with a few of the basics Linux syscalls.
+A simple Linux shell written entirely in x86 assembly language using the NASM syntax. I wrote JShell to teach myself assembly and to familiarize myself with a few of the basic Linux syscalls.
 
 ## Commands
 Below is a list of JShell's commands.
