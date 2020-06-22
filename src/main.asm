@@ -1,5 +1,3 @@
-; This program takes some command inputs and can create template files for various programming tasks.
-
 %include "io-utils.asm"	; Useful functions for IO
 %include "commands.asm"	; Implementations for commands
 %include "val-comms.asm"; Labels for checking commands
